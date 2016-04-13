@@ -13,6 +13,9 @@ int main()
 	int pbl[3] = { 3, 4, 1 };
 	MLP *model = multilayer_create_model( 2, pbl, 3 );
 
+	double inputTest[2] = { 0.5, 0.3 };
+	std::cout << multilayer_classify_perceptron(model, inputTest, 2, 3) << std::endl;
+	system("pause");
 	//linear_remove_model( model );
 	return 0;
 }

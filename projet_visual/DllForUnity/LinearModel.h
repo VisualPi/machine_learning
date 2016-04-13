@@ -20,12 +20,12 @@ extern "C"
 
 	DLL_FOR_UNITY_API double* linear_create_model( int input_dimension );
 	DLL_FOR_UNITY_API void linear_remove_model( double* model);
-	DLL_FOR_UNITY_API int perceptron_classify( double * model, double* input, int inputSize );
+	DLL_FOR_UNITY_API double perceptron_classify( double * model, double* input, int inputSize, bool useTanh=false);
 	DLL_FOR_UNITY_API double perceptron_predict( double * model, double* input, int inputSize );
 	DLL_FOR_UNITY_API void perceptron_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
 	DLL_FOR_UNITY_API void regression_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
 	DLL_FOR_UNITY_API void classification_hebb( double * model, double* input, int inputSize, double result );
 
 	DLL_FOR_UNITY_API MLP* multilayer_create_model( int inputByLayer, int* perceptronsByLayer, int nbLayer );
-	DLL_FOR_UNITY_API double* multilayer_classify_perceptron( double* model, double* inputs, int inputSize, int* perceptronsByLayer, int nbLayer);
+	DLL_FOR_UNITY_API double multilayer_classify_perceptron( MLP* model, double* inputs, int inputSize, int nbLayer);
 }
