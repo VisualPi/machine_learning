@@ -138,6 +138,46 @@ extern "C"
 
 		return model;
 	}
+
+	//MLP_bis* multilayer_create_model(int inputByLayer, int* perceptronsByLayer, int nbLayer)
+	//{
+	//	MLP_bis* model = new MLP_bis();
+	//	model->layer_weight = (double***) malloc( sizeof( double ) * nbLayer );
+	//	model->ponderate_sum = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->return_value = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->neuron_number = (int**)malloc(sizeof(double) * nbLayer);
+
+	//	int input_Number = inputByLayer +1 ;
+	//	int numberPerceptron = perceptronsByLayer[1];
+
+	//	for (int i = 0; i < nbLayer; ++i)
+	//	{
+	//		model->layer_weight[i] = (double**)malloc(sizeof(double) * input_Number);
+
+	//		for (int j = 0; j < input_Number; ++j)
+	//		{
+	//			model->layer_weight[i][j] = (double*)malloc(sizeof(double) * numberPerceptron);
+	//			memset(model->layer_weight[i][j], 0, sizeof(double) * numberPerceptron);
+	//		}
+
+	//		model->ponderate_sum[i] = (double*)malloc(sizeof(double) * perceptronsByLayer[i]);
+	//		memset(model->ponderate_sum[i], 0, sizeof(double) * perceptronsByLayer[i]);
+
+	//		model->return_value[i] = (double*)malloc(sizeof(double) * perceptronsByLayer[i]);
+	//		memset(model->return_value[i], 0, sizeof(double) * perceptronsByLayer[i]);
+
+	//		model->neuron_number[i] = (int*)malloc(sizeof(int) * perceptronsByLayer[i]);
+	//		memset(model->neuron_number[i], 0, sizeof(double) * perceptronsByLayer[i]);
+
+	//		input_Number = perceptronsByLayer[i] + 1;
+
+	//		if(i+1 == nbLayer-1)
+	//			numberPerceptron
+	//	}
+
+	//	return model;
+	//}
+
 	double multilayer_classify_perceptron( MLP* model, double* inputs, int inputSize, int nbLayer )
 	{
 		//Pour l allant de 0 a LMax
@@ -152,11 +192,13 @@ extern "C"
 			model->ptr_input[0][i] = inputs[i];
 		}
 
-		for (int i = 0; i < nbLayer; ++i)
+		for (int i = 1; i < nbLayer; ++i)
 		{
 			for (int j = 0; j < model->input_by_layer[i]; ++j)
 			{
-				model->ptr_input[i][j] = perceptron_classify_tanh(model->ptr_layer_to_neuron[i] + j, model->ptr_input[i] + j, inputSize);
+				 model->ptr_output[i][j] = perceptron_classify_tanh(model->ptr_layer_to_neuron[i] + j, model->ptr_input[i] + j, inputSize);
+				 if(i < nbLayer-1)
+					model->ptr_input[i + 1][j] = model->ptr_output[i][j];
 			}
 		}
 

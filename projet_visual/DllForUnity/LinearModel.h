@@ -18,6 +18,14 @@ extern "C"
 		int*		input_by_layer;
 	};
 
+	struct MLP_bis
+	{
+		double***	layer_weight;
+		double**	ponderate_sum;
+		double**	return_value;
+		int**		neuron_number;
+	};
+
 	DLL_FOR_UNITY_API double* linear_create_model( int input_dimension );
 	DLL_FOR_UNITY_API void linear_remove_model( double* model);
 	DLL_FOR_UNITY_API double perceptron_classify( double * model, double* input, int inputSize);
