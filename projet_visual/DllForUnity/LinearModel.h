@@ -20,10 +20,10 @@ extern "C"
 
 	struct MLP_bis
 	{
-		double***	layer_weight;
-		double**	ponderate_sum;
-		double**	return_value;
-		int**		neuron_number;
+		double***	W; //w
+		double**	S; //S
+		double**	X; //x
+		int*		D;//d
 	};
 
 	DLL_FOR_UNITY_API double* linear_create_model( int input_dimension );
@@ -35,8 +35,11 @@ extern "C"
 	DLL_FOR_UNITY_API void regression_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
 	DLL_FOR_UNITY_API void classification_hebb( double * model, double* input, int inputSize, double result );
 
-	DLL_FOR_UNITY_API MLP* multilayer_create_model( int inputByLayer, int* perceptronsByLayer, int nbLayer );
-	DLL_FOR_UNITY_API double multilayer_classify_perceptron( MLP* model, double* inputs, int inputSize, int nbLayer);
+
+	DLL_FOR_UNITY_API MLP_bis* multilayer_create_model_bis(int* perceptronsByLayer, int nbLayer);
+	DLL_FOR_UNITY_API void multilayer_classify_perceptron(MLP_bis* model, double* inputs, int nbLayer);
+	DLL_FOR_UNITY_API void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumber, double* output, int nbLayer);
+
 
 	DLL_FOR_UNITY_API double GetAlpha();
 	DLL_FOR_UNITY_API void SetAlpha( double value );
