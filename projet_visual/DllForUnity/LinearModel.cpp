@@ -108,124 +108,144 @@ extern "C"
 
 	//mutlicouche
 
-	MLP* multilayer_create_model( int inputByLayer, int* perceptronsByLayer, int nbLayer )
-	{
-		MLP* model = new MLP();
-		model->ptr_layer_to_neuron = (double**) malloc( sizeof( double ) * nbLayer );
-		model->ptr_input = (double**) malloc( sizeof( double ) * nbLayer );
-		model->ptr_output = (double**) malloc( sizeof( double ) * nbLayer );
-		model->ptr_delta = (double**) malloc( sizeof( double ) * nbLayer );
-		model->input_by_layer = (int*) malloc( sizeof( int ) * nbLayer );
-		int capacity = perceptronsByLayer[0] * ( inputByLayer + 1 );
-		int input = inputByLayer + 1;
-		for ( int i = 0 ; i < nbLayer ; ++i )
-		{
-			model->ptr_layer_to_neuron[i] = (double*) malloc( sizeof( double ) * capacity );
-			memset( model->ptr_layer_to_neuron[i], 0, sizeof( double ) * ( capacity ) );
-			model->ptr_input[i] = (double*) malloc( sizeof( double ) * input);
-			memset(model->ptr_input[i], 0, sizeof(double) * (capacity));
-			model->ptr_output[i] = (double*) malloc( sizeof( double ) * perceptronsByLayer[i] );
-			memset(model->ptr_output[i], 0, sizeof(double) * perceptronsByLayer[i]);
-			model->ptr_delta[i] = (double*) malloc( sizeof( double ) * perceptronsByLayer[i] );
-			memset(model->ptr_delta[i], 0, sizeof(double) * perceptronsByLayer[i]);
-			model->input_by_layer[i] = capacity;
-
-			input = perceptronsByLayer[i];
-			if(i < nbLayer -1 )
-				capacity = perceptronsByLayer[i+1] * ( perceptronsByLayer[i] + 1 );
-		}
-
-
-		return model;
-	}
-
-	//MLP_bis* multilayer_create_model(int inputByLayer, int* perceptronsByLayer, int nbLayer)
+	//MLP* multilayer_create_model( int inputByLayer, int* perceptronsByLayer, int nbLayer )
 	//{
-	//	MLP_bis* model = new MLP_bis();
-	//	model->layer_weight = (double***) malloc( sizeof( double ) * nbLayer );
-	//	model->ponderate_sum = (double**) malloc( sizeof( double ) * nbLayer );
-	//	model->return_value = (double**) malloc( sizeof( double ) * nbLayer );
-	//	model->neuron_number = (int**)malloc(sizeof(double) * nbLayer);
-
-	//	int input_Number = inputByLayer +1 ;
-	//	int numberPerceptron = perceptronsByLayer[1];
-
-	//	for (int i = 0; i < nbLayer; ++i)
+	//	MLP* model = new MLP();
+	//	model->ptr_layer_to_neuron = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->ptr_input = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->ptr_output = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->ptr_delta = (double**) malloc( sizeof( double ) * nbLayer );
+	//	model->input_by_layer = (int*) malloc( sizeof( int ) * nbLayer );
+	//	int capacity = perceptronsByLayer[0] * ( inputByLayer + 1 );
+	//	int input = inputByLayer + 1;
+	//	for ( int i = 0 ; i < nbLayer ; ++i )
 	//	{
-	//		model->layer_weight[i] = (double**)malloc(sizeof(double) * input_Number);
+	//		model->ptr_layer_to_neuron[i] = (double*) malloc( sizeof( double ) * capacity );
+	//		memset( model->ptr_layer_to_neuron[i], 0, sizeof( double ) * ( capacity ) );
+	//		model->ptr_input[i] = (double*) malloc( sizeof( double ) * input);
+	//		memset(model->ptr_input[i], 0, sizeof(double) * (capacity));
+	//		model->ptr_output[i] = (double*) malloc( sizeof( double ) * perceptronsByLayer[i] );
+	//		memset(model->ptr_output[i], 0, sizeof(double) * perceptronsByLayer[i]);
+	//		model->ptr_delta[i] = (double*) malloc( sizeof( double ) * perceptronsByLayer[i] );
+	//		memset(model->ptr_delta[i], 0, sizeof(double) * perceptronsByLayer[i]);
+	//		model->input_by_layer[i] = capacity;
 
-	//		for (int j = 0; j < input_Number; ++j)
-	//		{
-	//			model->layer_weight[i][j] = (double*)malloc(sizeof(double) * numberPerceptron);
-	//			memset(model->layer_weight[i][j], 0, sizeof(double) * numberPerceptron);
-	//		}
-
-	//		model->ponderate_sum[i] = (double*)malloc(sizeof(double) * perceptronsByLayer[i]);
-	//		memset(model->ponderate_sum[i], 0, sizeof(double) * perceptronsByLayer[i]);
-
-	//		model->return_value[i] = (double*)malloc(sizeof(double) * perceptronsByLayer[i]);
-	//		memset(model->return_value[i], 0, sizeof(double) * perceptronsByLayer[i]);
-
-	//		model->neuron_number[i] = (int*)malloc(sizeof(int) * perceptronsByLayer[i]);
-	//		memset(model->neuron_number[i], 0, sizeof(double) * perceptronsByLayer[i]);
-
-	//		input_Number = perceptronsByLayer[i] + 1;
-
-	//		if(i+1 == nbLayer-1)
-	//			numberPerceptron
+	//		input = perceptronsByLayer[i];
+	//		if(i < nbLayer -1 )
+	//			capacity = perceptronsByLayer[i+1] * ( perceptronsByLayer[i] + 1 );
 	//	}
+
 
 	//	return model;
 	//}
 
-	double multilayer_classify_perceptron( MLP* model, double* inputs, int inputSize, int nbLayer )
+	double GetRandomPointInRange(double min, double max)
 	{
-		//Pour l allant de 0 a LMax
-		//Pour chaque neurone de la couche L
-		//Get Neurone j de la couche l
-		//Classify du neurone avec pour input (si couche = 0 : input fonction)
-		//sinon input de l-1
-		//return tanh du dernier neurone
+		double f = (double)rand() / RAND_MAX;
+		return min + f * (max - min);
+	}
 
-		for (int i = 0; i < model->input_by_layer[0]; ++i)
-		{
-			model->ptr_input[0][i] = inputs[i];
-		}
+	MLP_bis* multilayer_create_model_bis(int* perceptronsByLayer, int nbLayer)
+	{
+		MLP_bis* model = new MLP_bis();
+		model->W = (double***) malloc( sizeof( double ) * (nbLayer));
+		model->S = (double**) malloc( sizeof( double ) * nbLayer );
+		model->X = (double**) malloc( sizeof( double ) * nbLayer );
+		//model->D = (int*)malloc(sizeof(double) * nbLayer);
+
+		model->D = perceptronsByLayer;
 
 		for (int i = 1; i < nbLayer; ++i)
 		{
-			for (int j = 0; j < model->input_by_layer[i]; ++j)
+			model->W[i] = (double**)malloc(sizeof(double) * (model->D[i-1]+1));
+
+			for (int j = 0; j <= model->D[i-1]+1; ++j)
 			{
-				 model->ptr_output[i][j] = perceptron_classify_tanh(model->ptr_layer_to_neuron[i] + j, model->ptr_input[i] + j, inputSize);
-				 if(i < nbLayer-1)
-					model->ptr_input[i + 1][j] = model->ptr_output[i][j];
+				model->W[i][j] = (double*)malloc(sizeof(double) * model->D[i]);
+				for (int k = 0; k <= model->D[i]; ++k)
+				{
+					model->W[i][j][k] = GetRandomPointInRange(-1.0, 3.0);
+				}
 			}
 		}
 
-		int last_index = model->input_by_layer[nbLayer - 1];
+		for (int i = 0; i < nbLayer; ++i)
+		{
+			model->S[i] = (double*)malloc(sizeof(double) * (model->D[i]+1));
+			memset(model->S[i], 0, sizeof(double) * model->D[i]);
 
-		return model->ptr_input[nbLayer - 1][0];
+			model->S[i][0] = 1;
+
+			model->X[i] = (double*)malloc(sizeof(double) * (model->D[i]+1));
+			memset(model->X[i], 0, sizeof(double) * model->D[i]);
+			model->X[i][0] = 1;
+		}
+
+		return model;
 	}
 
-	void multilayer_classify_gradient_backpropagation(MLP* model, double* inputs, int inputSize, int inputNumber, int* output, int nbLayer)
+	void multilayer_classify_perceptron( MLP_bis* model, double* inputs, int nbLayer )
 	{
-		double* input = new double[inputSize];
-		for (int i = 0; i < iteration; ++i)
+		for (int i = 1; i <= model->D[0]; ++i)
+			model->X[0][i] = inputs[i-1];
+		
+		for (int i = 1; i < nbLayer; ++i)
 		{
-			int ran = (rand() % (inputNumber / inputSize)) * inputSize;
-			for (int j = ran, k = 0; j < ran + inputNumber; ++j, ++k)
-				input[k] = inputs[j];
-
-			int last_index = model->input_by_layer[nbLayer - 1];
-			model->ptr_input[nbLayer - 1][last_index - 1] = multilayer_classify_perceptron(model, input, inputSize, true);
-
-			if (model->ptr_input[nbLayer - 1][last_index - 1] != output[ran / inputSize])
+			for (int j = 1; j <= model->D[i]; ++j)
 			{
-				//pour tout les neurones de la dernière couche : 
-				//(( 1 - model->ptr_input[nbLayer - 1][last_index - 1] * model->ptr_input[nbLayer - 1][last_index - 1]) * (model->ptr_input[nbLayer - 1][last_index - 1] * output[ran / inputSize])
+				model->X[i][j] = model->X[i - 1][0] * 1;
+				for (int k = 1; k <= model->D[i-1]; ++k)
+					model->X[i][j] += model->W[i][k][j] * model->X[i - 1][k];
 
-				//pour tout les autres neurones : 
-				//
+				model->X[i][j] = tanh(model->X[i][j]);
+			}
+		}
+	}
+
+	void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumberCount, double* output, int nbLayer)
+	{
+		for (int it = 0; it < iteration*10; ++it)
+		{
+			int exampleNumber = rand() % exampleNumberCount;
+
+			model->X[0] = inputs;
+			for (int i = 0; i < nbLayer; ++i)
+			{
+				for (int j = 0; j < model->D[i]; ++j)
+				{
+					multilayer_classify_perceptron(model, model->X[i], nbLayer);
+				}
+			}
+
+			for (int lastLayerNeuronNumber = 0; lastLayerNeuronNumber < model->D[nbLayer - 1]; ++lastLayerNeuronNumber)
+			{
+				double val = model->X[nbLayer - 1][lastLayerNeuronNumber];
+
+				model->S[nbLayer-1][lastLayerNeuronNumber] = (1 - (val * val) * (val - output[exampleNumber]));
+			}
+
+			for (int i = nbLayer - 2; i > 0; --i)
+			{
+				for (int j = 0; j < model->D[i]; ++j)
+				{
+					int sum = 0;
+					for (int k = 0;k < model->D[i+1]; ++k)
+					{
+						sum += model->W[i][k][j] * model->S[i+1][k];
+					}
+					model->S[i][j] = (1 - (model->X[i-1][j] * model->X[i][j])) * sum;
+				}
+			}
+
+			for (int layer = 1; layer < nbLayer; ++layer)
+			{
+				for (int start = 0; start < model->D[layer-1]+1; ++start)
+				{
+					for (int end = 0; end < model->D[layer]; ++end)
+					{
+						model->W[layer][start][end] = model->W[layer][start][end] - alpha * model->X[layer-1][start] * model->S[layer][end];
+					}
+				}
 			}
 		}
 	}
