@@ -250,3 +250,20 @@ extern "C"
 		}
 	}
 }
+
+double GetAlpha()
+{
+	return alpha;
+}
+void SetAlpha( double value )
+{
+	alpha = value;
+}
+int GetIteration()
+{
+	return iteration;
+}
+void SetIteration( int value )
+{
+	iteration = value;
+}

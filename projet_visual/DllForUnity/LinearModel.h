@@ -6,8 +6,8 @@
 
 extern "C" 
 {
-	const double alpha = 0.1;
-	const int iteration = 1000;
+	double alpha = 0.1;
+	int iteration = 1000;
 
 	struct MLP
 	{
@@ -35,7 +35,14 @@ extern "C"
 	DLL_FOR_UNITY_API void regression_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
 	DLL_FOR_UNITY_API void classification_hebb( double * model, double* input, int inputSize, double result );
 
+
 	DLL_FOR_UNITY_API MLP_bis* multilayer_create_model_bis(int* perceptronsByLayer, int nbLayer);
 	DLL_FOR_UNITY_API void multilayer_classify_perceptron(MLP_bis* model, double* inputs, int nbLayer);
 	DLL_FOR_UNITY_API void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumber, double* output, int nbLayer);
+
+
+	DLL_FOR_UNITY_API double GetAlpha();
+	DLL_FOR_UNITY_API void SetAlpha( double value );
+	DLL_FOR_UNITY_API int GetIteration();
+	DLL_FOR_UNITY_API void SetIteration( int value );
 }

@@ -64,16 +64,13 @@ public class Ball : MonoBehaviour
 		{
 		case EColor.BLUE:
 			return -1;
-			break;
 		case EColor.RED:
 			return 1;
 			break;
 		case EColor.GREEN:
 			return 2;
-			break;
 		case EColor.YELLOW:
 			return 3;
-			break;
 		default:
 			Debug.LogError("PAS NORMAL !");
 			break;
