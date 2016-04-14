@@ -107,7 +107,37 @@ public class Perceptron : MonoBehaviour
             //b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
         }
     }
-    public void StartProcessClassifySquare()
+	public void StartProcessRegressionCross()
+	{
+		balls = new List<Ball>();
+		exBalls = new List<Ball>();
+		for( var i = 0 ; i < boules.transform.childCount ; ++i )
+			balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
+		for( var i = 0 ; i < examples.transform.childCount ; ++i )
+		{
+			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
+				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
+		}
+		_model = linear_create_model(2);
+
+		List<double> inputs = new List<double>();
+		List<double> results = new List<double>();
+		foreach( var b in exBalls )
+		{
+			inputs.Add(Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z));
+			inputs.Add(Mathf.Abs(b.transform.position.x * b.transform.position.z));
+			results.Add(b.c == EColor.BLUE ? -1 : 1);
+		}
+		regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+		foreach( var b in balls )
+		{
+			double[] wanted = new double[2] { Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z), Mathf.Abs(b.transform.position.x * b.transform.position.z) };
+			var coef = (float)perceptron_predict(_model, wanted, 2);
+			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
+			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+		}
+	}
+	public void StartProcessClassifySquare()
     {
         balls = new List<Ball>();
         exBalls = new List<Ball>();
@@ -144,7 +174,37 @@ public class Perceptron : MonoBehaviour
             }
         }
     }
-    public void StartProcessClassifyCross()
+	public void StartProcessRegressionSquare()
+	{
+		balls = new List<Ball>();
+		exBalls = new List<Ball>();
+		for( var i = 0 ; i < boules.transform.childCount ; ++i )
+			balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
+		for( var i = 0 ; i < examples.transform.childCount ; ++i )
+		{
+			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
+				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
+		}
+		_model = linear_create_model(2);
+
+		List<double> inputs = new List<double>();
+		List<double> results = new List<double>();
+		foreach( var b in exBalls )
+		{
+			inputs.Add(b.transform.position.x * b.transform.position.x);
+			inputs.Add(b.transform.position.z * b.transform.position.z);
+			results.Add(b.c == EColor.BLUE ? -1 : 1);
+		}
+		regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+		foreach( var b in balls )
+		{
+			double[] wanted = new double[2] { b.transform.position.x * b.transform.position.x, b.transform.position.z * b.transform.position.z };
+			var coef = (float)perceptron_predict(_model, wanted, 2);
+			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
+			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+		}
+	}
+	public void StartProcessClassifyCross()
     {
         balls = new List<Ball>();
         exBalls = new List<Ball>();
@@ -221,9 +281,37 @@ public class Perceptron : MonoBehaviour
             }
         }
     }
+	public void StartProcessRegressionXOR()
+	{
+		balls = new List<Ball>();
+		exBalls = new List<Ball>();
+		for( var i = 0 ; i < boules.transform.childCount ; ++i )
+			balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
+		for( var i = 0 ; i < examples.transform.childCount ; ++i )
+		{
+			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
+				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
+		}
+		_model = linear_create_model(2);
 
-    //MULTICLASSE
-    public void StartProcessCLassificationMulticlasse()
+		List<double> inputs = new List<double>();
+		List<double> results = new List<double>();
+		foreach( var b in exBalls )
+		{
+			inputs.Add(b.transform.position.x * b.transform.position.z);
+			results.Add(b.c == EColor.BLUE ? -1 : 1);
+		}
+		regression_fit(_model, inputs.ToArray(), 1, inputs.Count, results.ToArray());
+		foreach( var b in balls )
+		{
+			double[] wanted = new double[1] { b.transform.position.x * b.transform.position.z };
+			var coef = (float)perceptron_predict(_model, wanted, 1);
+			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
+			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+		}
+	}
+	//MULTICLASSE
+	public void StartProcessCLassificationMulticlasse()
     {
         balls = new List<Ball>();
         exBalls = new List<Ball>();
