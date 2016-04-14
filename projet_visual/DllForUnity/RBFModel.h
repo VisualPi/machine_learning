@@ -1,4 +1,8 @@
-#include "LinearModel.h"
+#ifdef DLL_EXPORT
+#define DLL_MODE __declspec(dllexport) 
+#else
+#define DLL_MODE __declspec(dllimport) 
+#endif
 
 extern "C"
 {
@@ -8,11 +12,11 @@ extern "C"
         int     nb_parameter;
     };
 
-    DLL_FOR_UNITY_API RBF*      rbf_create_model(int nb_parameter, int nb_example);
-    DLL_FOR_UNITY_API double    rbf_classify(RBF * model, double* input, int inputSize, double gamma);
-    DLL_FOR_UNITY_API double    rbf_regression(RBF * model, double* input, int inputSize, double gamma);
-    DLL_FOR_UNITY_API void      rbf_fit(RBF * model, double* inputs, int modelSize, int inputsSize, double* results, double gamma);
-    DLL_FOR_UNITY_API void      LLoyd(double * model, double* inputs, int modelSize, int inputsSize, double* results);
+    DLL_MODE RBF*      rbf_create_model(int nb_parameter, int nb_example);
+    DLL_MODE double    rbf_classify(RBF * model, double* input, int inputSize, double gamma);
+    DLL_MODE double    rbf_regression(RBF * model, double* input, int inputSize, double gamma);
+    DLL_MODE void      rbf_fit(RBF * model, double* inputs, int modelSize, int inputsSize, double* results, double gamma);
+    DLL_MODE void      LLoyd(double * model, double* inputs, int modelSize, int inputsSize, double* results);
     
     double normeEuclidienne(double* x, double* y, int modelSize);
 }
