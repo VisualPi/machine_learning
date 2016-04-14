@@ -154,6 +154,7 @@ extern "C"
 		//model->D = (int*)malloc(sizeof(double) * nbLayer);
 
 		model->D = perceptronsByLayer;
+		model->W[0] = nullptr;
 
 		for (int i = 1; i < nbLayer; ++i)
 		{
@@ -202,7 +203,7 @@ extern "C"
 		}
 	}
 
-	void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumberCount, double* output, int nbLayer)
+	void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumberCount, double* output, int nbLayer, bool useClassify)
 	{
 		for (int it = 0; it < iteration*10; ++it)
 		{
@@ -221,7 +222,10 @@ extern "C"
 			{
 				double val = model->X[nbLayer - 1][lastLayerNeuronNumber];
 
-				model->S[nbLayer-1][lastLayerNeuronNumber] = (1 - (val * val) * (val - output[exampleNumber]));
+				if (!useClassify)
+					model->S[nbLayer - 1][lastLayerNeuronNumber] = val - output[exampleNumber];
+				else
+					model->S[nbLayer-1][lastLayerNeuronNumber] = (1 - (val * val) * (val - output[exampleNumber]));
 			}
 
 			for (int i = nbLayer - 2; i > 0; --i)
@@ -249,6 +253,28 @@ extern "C"
 			}
 		}
 	}
+}
+void Destroy_MultiLayer_Perceptron(MLP_bis* mlp, int nbLayer)
+{
+	for (int i = 0; i < nbLayer; ++i)
+	{
+		if(mlp->W[i] != nullptr)
+		{ 
+			for (int j = 0; j < mlp->d[i]; j++)
+			{
+				free(mlp->W[i][j]);
+			}
+		}
+		free(mlp->W[i]);
+		free(mlp->S[i]);
+		free(mlp->X[i]);
+	}
+
+	free(mlp->W);
+	free(mlp->S);
+	free(mlp->X);
+	free(mlp->D);
+	free(mlp);
 }
 
 double GetAlpha()
