@@ -23,16 +23,20 @@ extern "C"
 		if ( model )
 			delete model;
 	}
+	double perceptron_classify(double * model, double* input, int inputSize)//oracle
+	{
+		double out = model[0] * 1;//wo * x0
+		for (int i = 0; i < inputSize; ++i)
+			out += input[i] * model[i + 1];
+		return out > 0.0 ? 1 : -1;//sign
 
-	double perceptron_classify( double * model, double* input, int inputSize, bool useTanh )//oracle
+	}
+	double perceptron_classify_tanh( double * model, double* input, int inputSize )//oracle
 	{
 		double out = model[0] * 1;//wo * x0
 		for ( int i = 0 ; i < inputSize; ++i )
 			out += input[i] * model[i + 1];
-		if (!useTanh)
-			return out > 0.0 ? 1 : -1;//sign
-		else
-			return tanh(out);
+		return tanh(out);
 
 	}
 	double perceptron_predict( double * model, double* input, int inputSize )//oracle
@@ -51,7 +55,7 @@ extern "C"
 			int ran = ( rand() % ( inputsSize / modelSize ) ) * modelSize;
 			for ( int j = ran, k = 0 ; j < ran + modelSize ; ++j, ++k )
 				input[k] = inputs[j];
-			if ( perceptron_classify( model, input, modelSize, false ) != results[ran / modelSize] )
+			if ( perceptron_classify( model, input, modelSize ) != results[ran / modelSize] )
 			{
 				classification_hebb( model, input, modelSize, results[ran / modelSize] );
 			}
@@ -152,7 +156,7 @@ extern "C"
 		{
 			for (int j = 0; j < model->input_by_layer[i]; ++j)
 			{
-				model->ptr_input[i][j] = perceptron_classify(model->ptr_layer_to_neuron[i] + j, model->ptr_input[i] + j, inputSize, true);
+				model->ptr_input[i][j] = perceptron_classify_tanh(model->ptr_layer_to_neuron[i] + j, model->ptr_input[i] + j, inputSize);
 			}
 		}
 

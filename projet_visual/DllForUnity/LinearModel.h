@@ -20,7 +20,8 @@ extern "C"
 
 	DLL_FOR_UNITY_API double* linear_create_model( int input_dimension );
 	DLL_FOR_UNITY_API void linear_remove_model( double* model);
-	DLL_FOR_UNITY_API double perceptron_classify( double * model, double* input, int inputSize, bool useTanh=false);
+	DLL_FOR_UNITY_API double perceptron_classify( double * model, double* input, int inputSize);
+	DLL_FOR_UNITY_API double perceptron_classify_tanh(double * model, double* input, int inputSize);
 	DLL_FOR_UNITY_API double perceptron_predict( double * model, double* input, int inputSize );
 	DLL_FOR_UNITY_API void perceptron_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
 	DLL_FOR_UNITY_API void regression_fit( double * model, double* inputs, int modelSize, int inputsSize, double* results );
