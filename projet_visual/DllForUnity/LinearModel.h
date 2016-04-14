@@ -6,8 +6,8 @@
 
 extern "C" 
 {
-	const double alpha = 0.1;
-	const int iteration = 1000;
+	double alpha = 0.1;
+	int iteration = 1000;
 
 	struct MLP
 	{
@@ -37,4 +37,9 @@ extern "C"
 
 	DLL_FOR_UNITY_API MLP* multilayer_create_model( int inputByLayer, int* perceptronsByLayer, int nbLayer );
 	DLL_FOR_UNITY_API double multilayer_classify_perceptron( MLP* model, double* inputs, int inputSize, int nbLayer);
+
+	DLL_FOR_UNITY_API double GetAlpha();
+	DLL_FOR_UNITY_API void SetAlpha( double value );
+	DLL_FOR_UNITY_API int GetIteration();
+	DLL_FOR_UNITY_API void SetIteration( int value );
 }
