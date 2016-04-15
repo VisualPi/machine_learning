@@ -12,10 +12,9 @@ public class MethodRBF : MonoBehaviour {
     private List<Ball>      _balls;
     private List<Ball>      _exBalls;
     private List<EColor>    _types;
-    private System.IntPtr   _model;
 
     [SerializeField]
-    private double _gamma = 0.1;
+    private double _gamma = 0.115;
 
     void Start() {
         _balls = new List<Ball>();
@@ -60,10 +59,14 @@ public class MethodRBF : MonoBehaviour {
                     b.transform.position.z);
             }
         }
+        WrapperDllMachineLearning.RBF.DestroyModel(model, _exBalls.Count);
     }
 
     public void StartRegression() {
         _exBalls = new List<Ball>();
+
+        foreach (var b in _balls)
+            b.renderer.material.color = _defaultColor.color;
 
         var types = new List<EColor>();
         for (var i = 0; i < _examples.transform.childCount; ++i) {
@@ -90,9 +93,6 @@ public class MethodRBF : MonoBehaviour {
             var coef = (float)WrapperDllMachineLearning.RBF.Regression(model, wanted, wanted.Length, _gamma);
             b.renderer.material.color = new Color(Mathf.Max(0, coef * _defaultColor.color.r), 0, Mathf.Max(0, _defaultColor.color.b * -coef));
         }
-    }
-
-    void OnDestroy() {
-        WrapperDllMachineLearning.RBF.DestroyModel(_model, _exBalls.Count);
+        WrapperDllMachineLearning.RBF.DestroyModel(model, _exBalls.Count);
     }
 }
