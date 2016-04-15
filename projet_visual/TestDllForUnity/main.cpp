@@ -22,20 +22,23 @@ void PrintModel(MLP_bis* model)
 int main()
 {
 
-	double inputs[12] = { 1, 6, 5, 9, 3, 7, 6, 3, 8, 4, 9, 2 };
-	double results[6] = { -1, -1, -1, 1, 1, 1 };
+	double inputs[12] = { 0.1, 0.3, 0.8, 0.9, 0.4, 0.7, 0.3, 0.3, 0.8, 0.4, 0.9, 0.2 };
+	double results[6] = { -1, 1, 1, -1, 1, 1 };
 
-	int pbl[3] = { 2, 5, 1 };
+	int pbl[3] = { 2, 3, 1 };
 
-	double inputTest[2] = { 0.5, 0.3 };
+	double inputTest[2] = { 0.3, 0.3 };
 
 	MLP_bis *model = multilayer_create_model_bis( pbl, 3 );
 
 	PrintModel(model);
 
-	multilayer_classify_gradient_backpropagation(model, inputs, 2, 6, results, 3);
+	multilayer_classify_gradient_backpropagation(model, inputs, 2, 6, results, 3, true);
+	multilayer_classify_perceptron(model, inputTest, 3, true);
 
 	PrintModel(model);
+
+	std::cout << model->S[2][1] << std::endl;
 
 	system("pause");
 
