@@ -23,6 +23,7 @@ extern "C"
 		double***	W; //w
 		double**	S; //S
 		double**	X; //x
+		double**	Sigma;
 		int*		D;//d
 	};
 
@@ -37,7 +38,7 @@ extern "C"
 
 
 	DLL_FOR_UNITY_API MLP_bis* multilayer_create_model_bis(int* perceptronsByLayer, int nbLayer);
-	DLL_FOR_UNITY_API void multilayer_classify_perceptron(MLP_bis* model, double* inputs, int nbLayer);
+	DLL_FOR_UNITY_API void multilayer_classify_perceptron(MLP_bis* model, double* inputs, int nbLayer, bool useClassify);
 	DLL_FOR_UNITY_API void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumber, double* output, int nbLayer, bool useClassify);
 
 
