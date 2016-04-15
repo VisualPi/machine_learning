@@ -1,13 +1,13 @@
 #include <LinearModel.h>
 #include <iostream>
 
-void PrintModel(MLP_bis* model)
+void PrintModel(MLP_bis* model,int nbLayer)
 {
-	for (int layer = 1; layer < 3; ++layer)
+	for (int layer = 1; layer < nbLayer; ++layer)
 	{
-		for (int neuronBegin = 0; neuronBegin < model->D[layer-1]+1; ++neuronBegin)
+		for (int neuronBegin = 0; neuronBegin <= model->D[layer-1]; ++neuronBegin)
 		{
-			for (int neuronEnd = 0; neuronEnd < model->D[layer]; ++neuronEnd)
+			for (int neuronEnd = 1; neuronEnd <= model->D[layer]; ++neuronEnd)
 			{
 				std::cout << "Layer : " << layer << " Neuron Start : " << neuronBegin << " Neuron End : " << neuronEnd << " w value : " <<
 					model->W[layer][neuronBegin][neuronEnd] << std::endl;
@@ -22,23 +22,35 @@ void PrintModel(MLP_bis* model)
 int main()
 {
 
-	double inputs[12] = { 0.1, 0.3, 0.8, 0.9, 0.4, 0.7, 0.3, 0.3, 0.8, 0.4, 0.9, 0.2 };
-	double results[6] = { -1, 1, 1, -1, 1, 1 };
+	double inputs[8] = { 
+		-1, -1,
+		 1, -1,
+		 1,  1,
+		-1,  1};
+	double results[4] = { -1, 1, -1, 1 };
 
 	int pbl[3] = { 2, 3, 1 };
+	int nbLayer = 3;
 
-	double inputTest[2] = { 0.3, 0.3 };
+	double inputTest[2] = { 1, -1 }; //doit sortir 1
 
-	MLP_bis *model = multilayer_create_model_bis( pbl, 3 );
+	MLP_bis *model = multilayer_create_model_bis( pbl, nbLayer);
 
-	PrintModel(model);
+	PrintModel(model, nbLayer);
 
-	multilayer_classify_gradient_backpropagation(model, inputs, 2, 6, results, 3, true);
-	multilayer_classify_perceptron(model, inputTest, 3, true);
+	multilayer_classify_gradient_backpropagation(model, inputs, 2, 4, results, nbLayer, true);
+	multilayer_classify_perceptron(model, inputTest, nbLayer, true);
 
-	PrintModel(model);
+	PrintModel(model, nbLayer);
 
-	std::cout << model->S[2][1] << std::endl;
+	std::cout << model->X[2][1] << std::endl;
+
+	double inputTest2[2] = { 1, 1 }; //doit sortir -1
+	multilayer_classify_perceptron(model, inputTest2, nbLayer, true);
+
+	std::cout << model->X[2][1] << std::endl;
+
+	Destroy_MultiLayer_Perceptron(model, nbLayer);
 
 	system("pause");
 

@@ -147,7 +147,7 @@ extern "C"
 
 	MLP_bis* multilayer_create_model_bis(int* perceptronsByLayer, int nbLayer)
 	{
-		MLP_bis* model = new MLP_bis();
+		MLP_bis* model = (MLP_bis*)malloc(sizeof(MLP_bis));
 		model->W = (double***) malloc( sizeof( double ) * (nbLayer));
 		model->S = (double**) malloc( sizeof( double ) * nbLayer );
 		model->Sigma = (double**)malloc(sizeof(double) * nbLayer);
@@ -161,9 +161,9 @@ extern "C"
 		{
 			model->W[i] = (double**)malloc(sizeof(double) * (model->D[i-1]+1));
 
-			for (int j = 0; j <= model->D[i-1]+1; ++j)
+			for (int j = 0; j <= model->D[i-1]; ++j)
 			{
-				model->W[i][j] = (double*)malloc(sizeof(double) * model->D[i]);
+				model->W[i][j] = (double*)malloc(sizeof(double) * model->D[i]+1);
 				for (int k = 0; k <= model->D[i]; ++k)
 				{
 					model->W[i][j][k] = GetRandomPointInRange(-1.0, 3.0);
@@ -174,15 +174,14 @@ extern "C"
 		for (int i = 0; i < nbLayer; ++i)
 		{
 			model->Sigma[i] = (double*)malloc(sizeof(double) * (model->D[i] + 1));
-			memset(model->Sigma[i], 0, sizeof(double) * model->D[i]);
+			memset(model->Sigma[i], 0, sizeof(double) * model->D[i]+1);
 
 			model->S[i] = (double*)malloc(sizeof(double) * (model->D[i]+1));
-			memset(model->S[i], 0, sizeof(double) * model->D[i]);
-
+			memset(model->S[i], 0, sizeof(double) * model->D[i] +1 );
 			model->S[i][0] = 1;
 
 			model->X[i] = (double*)malloc(sizeof(double) * (model->D[i]+1));
-			memset(model->X[i], 0, sizeof(double) * model->D[i]);
+			memset(model->X[i], 0, sizeof(double) * model->D[i]+1);
 			model->X[i][0] = 1;
 		}
 
@@ -194,18 +193,18 @@ extern "C"
 		for (int i = 1; i <= model->D[0]; ++i)
 			model->X[0][i] = inputs[i-1];
 		
-		for (int i = 1; i < nbLayer; ++i)
+		for (int l = 1; l <= nbLayer; ++l)
 		{
-			for (int j = 1; j <= model->D[i]; ++j)
+			for (int j = 1; j <= model->D[l]; ++j)
 			{
-				model->S[i][j] = model->X[i - 1][0] * 1;
-				for (int k = 1; k <= model->D[i-1]; ++k)
-					model->S[i][j] += model->W[i][k][j] * model->X[i - 1][k];
+				model->S[l][j] = 0;
+				for (int k = 0; k <= model->D[l-1]; ++k)
+					model->S[l][j] += model->W[l][k][j] * model->X[l - 1][k];
 
-				if (useClassify || i < nbLayer - 1)
-					model->X[i][j] = tanh(model->S[i][j]);
+				if (useClassify || l < nbLayer - 1)
+					model->X[l][j] = tanh(model->S[l][j]);
 				else
-					model->X[i][j] = model->S[i][j];
+					model->X[l][j] = model->S[l][j];
 			}
 		}
 	}
@@ -216,45 +215,38 @@ extern "C"
 		{
 			int exampleNumber = rand() % exampleNumberCount;
 
-			model->X[0] = inputs;
-			for (int i = 0; i <= nbLayer; ++i)
-			{
-				for (int j = 0; j <= model->D[i]; ++j) //BIAS ?
-				{
-					multilayer_classify_perceptron(model, model->X[i], nbLayer, useClassify);
-				}
-			}
+			multilayer_classify_perceptron(model, inputs + exampleNumber * inputSize, nbLayer, useClassify);
 
-			for (int lastLayerNeuronNumber = 0; lastLayerNeuronNumber <= model->D[nbLayer - 1]; ++lastLayerNeuronNumber) //BIAS ?
+			for (int lastLayerNeuronNumber = 1; lastLayerNeuronNumber <= model->D[nbLayer - 1]; ++lastLayerNeuronNumber) //BIAS ?
 			{
 				double val = model->X[nbLayer - 1][lastLayerNeuronNumber];
 
 				if (!useClassify)
 					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = val - output[exampleNumber];
 				else
-					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = (1 - (val * val) * (val - output[exampleNumber]));
+					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = ((1.0 - (val * val)) * (val - output[exampleNumber]));
 			}
 
-			for (int i = nbLayer - 2; i > 0; --i)
+			for (int l = nbLayer - 2; l > 0; --l)
 			{
-				for (int j = 0; j <= model->D[i]; ++j) //BIAS ?
+				for (int i = 1; i <= model->D[l]; ++i) //BIAS ?
 				{
-					int sum = 0;
-					for (int k = 0;k <= model->D[i+1]; ++k) //BIAS ?
+					double sum = 0;
+					for (int j = 1;j <= model->D[l+1]; ++j) //BIAS ?
 					{
-						sum += model->W[i][j][k] * model->S[i+1][k];
+						sum += model->W[l+1][i][j] * model->Sigma[l+1][j];
 					}
-					model->Sigma[i][j] = (1 - (model->X[i-1][j] * model->X[i][j])) * sum;
+					model->Sigma[l][i] = (1.0 - (model->X[l][i] * model->X[l][i])) * sum;
 				}
 			}
 
-			for (int layer = 1; layer <= nbLayer; ++layer)
+			for (int layer = 1; layer < nbLayer; ++layer)
 			{
-				for (int start = 0; start <= model->D[layer-1]; ++start) //BIAS
+				for (int start = 0; start <= model->D[layer-1]; ++start) //BIAS //I
 				{
-					for (int end = 0; end <= model->D[layer]; ++end) //BIAS
+					for (int end = 1; end <= model->D[layer]; ++end) //BIAS //J
 					{
-						model->W[layer][start][end] = model->W[layer][start][end] - alpha * model->X[layer-1][start] * model->Sigma[layer][end];
+						model->W[layer][start][end] -=  alpha * model->X[layer-1][start] * model->Sigma[layer][end];
 					}
 				}
 			}
@@ -263,11 +255,12 @@ extern "C"
 }
 void Destroy_MultiLayer_Perceptron(MLP_bis* mlp, int nbLayer)
 {
+
 	for (int i = 0; i < nbLayer; ++i)
 	{
 		if(mlp->W[i] != nullptr)
 		{ 
-			for (int j = 0; j < mlp->D[i]; j++)
+			for (int j = 0; j <= mlp->D[i]; j++)
 			{
 				free(mlp->W[i][j]);
 			}
@@ -275,12 +268,14 @@ void Destroy_MultiLayer_Perceptron(MLP_bis* mlp, int nbLayer)
 		free(mlp->W[i]);
 		free(mlp->S[i]);
 		free(mlp->X[i]);
+		free(mlp->Sigma[i]);
 	}
 
 	free(mlp->W);
 	free(mlp->S);
 	free(mlp->X);
 	free(mlp->D);
+	free(mlp->Sigma);
 	free(mlp);
 }
 
