@@ -8,7 +8,7 @@
 
 extern "C"
 {
-    /// <summary>Create model for RBF methode.</summary>
+    /// <summary>Create model of type RBF.</summary>
     RBF* rbf_create_model(int nb_parameter, int nb_example) {
         RBF* model;
 
@@ -20,6 +20,17 @@ extern "C"
         }
 
         return model;
+    }
+
+    /// <summary>Remove model of type RBF.</summary>
+    void rbf_remove_model(RBF* model, int nb_example) {
+        if (model != nullptr) {
+            for (int i = 0; i < nb_example; ++i)
+                if (model->X != nullptr)
+                    delete model->X;
+
+            delete model;
+        }
     }
 
     /// <summary>Oracle of classify for RBF methode.</summary>
