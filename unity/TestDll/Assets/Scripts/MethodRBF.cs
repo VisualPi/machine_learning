@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class MethodRBF : MonoBehaviour {
     [SerializeField]
@@ -32,7 +34,7 @@ public class MethodRBF : MonoBehaviour {
                 _exBalls.Add(_examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
         }
 
-        var model = WrapperDllMachineLearning.RBF.CreateModel(2, _exBalls.Count);
+        var model = WrapperDllMachineLearning.RBF.CreateModel(_exBalls.Count, 2);
 
         var inputs = new List<double>();
         var results = new List<double>();
@@ -41,13 +43,21 @@ public class MethodRBF : MonoBehaviour {
             inputs.Add(b.transform.position.z);
             results.Add(b.c == types[0] ? -1 : 1);//Si la couleur de la boule est la couleur actuelle tu met -1, sinon 1
         }
-        WrapperDllMachineLearning.RBF.Fit(model, inputs.ToArray(), 2, inputs.Count, results.ToArray(), 0.1);
+
+        var str = "";
+        inputs.ForEach(i => str += ", " + i.ToString());
+        Debug.Log(str);
+        str = "";
+        results.ForEach(i => str += ", " + i.ToString());
+        Debug.Log(str);
+
+        WrapperDllMachineLearning.RBF.Fit(model, inputs.ToArray(), 2, inputs.Count, results.ToArray(), _gamma);
 
 
         foreach (var b in _balls) {
             var wanted = new double[] { b.transform.position.x, b.transform.position.z };
 
-            var coef = WrapperDllMachineLearning.RBF.Classify(model, wanted, wanted.Length, 0.1);
+            var coef = WrapperDllMachineLearning.RBF.Classify(model, wanted, wanted.Length, _gamma);
             if (coef == -1) {
                 b.renderer.material = b.GetColor(types[0]);
                 b.transform.position = new Vector3(b.transform.position.x, b.GetPosByColor(types[0]),
@@ -64,6 +74,6 @@ public class MethodRBF : MonoBehaviour {
     }
 
     void OnDestroy() {
-        WrapperDllMachineLearning.linear_remove_model(_model);
+        WrapperDllMachineLearning.RBF.DestroyModel(_model, 2);
     }
 }

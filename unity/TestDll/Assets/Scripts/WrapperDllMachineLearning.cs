@@ -22,8 +22,12 @@ public static class WrapperDllMachineLearning {
     public extern static double perceptron_predict(System.IntPtr model, double[] input, int inputSize);
 
     public static class RBF {
-        public static System.IntPtr CreateModel(int nb_parameter, int nb_example) {
-            return rbf_create_model(nb_parameter, nb_example);
+        public static System.IntPtr CreateModel(int nbExample, int nbParameter) {
+            return rbf_create_model(nbExample, nbParameter);
+        }
+
+        public static void DestroyModel(System.IntPtr model, int nbExample) {
+            rbf_remove_model(model, nbExample);
         }
 
         public static double Classify(System.IntPtr model, double[] input, int inputSize, double gamma) {
@@ -40,7 +44,10 @@ public static class WrapperDllMachineLearning {
         }
 
         [DllImport("DllForUnity")]
-        private static extern System.IntPtr rbf_create_model(int nb_parameter, int nb_example);
+        private static extern System.IntPtr rbf_create_model(int nbParameter, int nbExample);
+
+        [DllImport("DllForUnity")]
+        private static extern System.IntPtr rbf_remove_model(System.IntPtr model, int nbExample);
 
         [DllImport("DllForUnity")]
         private static extern double rbf_classify(System.IntPtr model, double[] input, int inputSize, double gamma);

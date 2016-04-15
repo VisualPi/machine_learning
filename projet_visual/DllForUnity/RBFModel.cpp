@@ -9,27 +9,30 @@
 extern "C"
 {
     /// <summary>Create model of type RBF.</summary>
-    RBF* rbf_create_model(int nb_parameter, int nb_example) {
+    RBF* rbf_create_model(int nbExample, int nbParameter) {
         RBF* model;
 
-        model = (RBF*) malloc(sizeof(RBF) * nb_example);
-        for (int i = 0; i < nb_example; i++) {
-            model[i].W = rand() % 2;
-            model[i].X = (double*) malloc(sizeof(double) * nb_parameter);
-            model[i].nb_parameter = nb_parameter;
+        model = (RBF*) malloc(sizeof(RBF) * nbExample);
+        for (int i = 0; i < nbExample; i++) {
+            model[i].W = 0;
+            model[i].X = (double*) malloc(sizeof(double) * nbParameter);
+            for (int j = 0; j < nbParameter; j++)
+                model[i].X[j] = 0;
+            model[i].nb_parameter = nbParameter;
+            model[i].nb_samples = nbExample;
         }
 
         return model;
     }
 
     /// <summary>Remove model of type RBF.</summary>
-    void rbf_remove_model(RBF* model, int nb_example) {
-        if (model != nullptr) {
-            for (int i = 0; i < nb_example; ++i)
-                if (model->X != nullptr)
-                    delete model->X;
+    void rbf_remove_model(RBF* model, int nbExample) {
+        if (model) {
+            for (int i = 0; i < nbExample; ++i)
+                if (model[i].X)
+                    delete[] model[i].X;
 
-            delete model;
+            delete[] model;
         }
     }
 
@@ -41,8 +44,8 @@ extern "C"
     /// <summary>Oracle of prediction for RBF methode.</summary>
     double rbf_regression(RBF * model, double* input, int inputSize, double gamma) {
         double out = 0;
-        for (int i = 0; i < model->nb_parameter; ++i)
-            out += model[i].W * exp(gamma*normeEuclidienne(input, model[i].X, inputSize));
+        for (int i = 0; i < model->nb_samples; ++i)
+            out += model[i].W * exp(-gamma*normeEuclidienne(input, model[i].X, inputSize));
         return out;
     }
 
@@ -55,21 +58,22 @@ extern "C"
         Eigen::MatrixXd W(nbInput, nbInput);
 
         // Init matrice Y
-        for (int i = 0; i < inputsSize / modelSize; ++i)
+        for (int i = 0; i < nbInput; ++i)
             Y(i, 0) = results[i];
 
         // Init matrice W
         for (int i = 0; i < nbInput; ++i) {
             // All diagonal is set to : 1
             W(i, i) = 1;
-            for (int j = i + 1; j < nbInput + 1; ++j)
+            for (int j = i + 1; j < nbInput; ++j)
                 // The matrice is symmetrical
                 W(j, i) = W(i, j) = exp(gamma*normeEuclidienne(inputs + modelSize*i, inputs + modelSize*j, modelSize));
         }
-        W = W.inverse() * Y;
+        W = W.inverse()*Y;
+        std::cout << W << std::endl;
 
         // Set model
-        for (int i = 0; i < modelSize + 1; ++i) {
+        for (int i = 0; i < nbInput; ++i) {
             model[i].W = W(i, 0);
             for (int j = 0; j < modelSize; ++j)
                 model[i].X[j] = inputs[i*modelSize + j];
