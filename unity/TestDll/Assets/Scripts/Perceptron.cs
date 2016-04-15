@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
-
+using System.IO;
 
 public class Perceptron : MonoBehaviour
 {
@@ -12,6 +11,8 @@ public class Perceptron : MonoBehaviour
 	private List<Ball> exBalls;
 
 	public Material defaultColor;
+	[SerializeField]
+	public List<int> neuronByLayer;
 
 	#region DLL_DEFINITIONS
 	[DllImport("DllForUnity")]
@@ -33,6 +34,15 @@ public class Perceptron : MonoBehaviour
 	public extern static void SetAlpha( double value );
 	[DllImport("DllForUnity")]
 	public extern static void SetIteration( int value );
+
+	[DllImport("DllForUnity")]
+	public extern static System.IntPtr multilayer_create_model_bis( int[] perceptronsByLayer, int nbLayer );
+	[DllImport("DllForUnity")]
+	public extern static System.IntPtr multilayer_classify_perceptron( System.IntPtr model, double[] inputs, int nbLayer, bool useClassify );
+	[DllImport("DllForUnity")]
+	public extern static void multilayer_classify_gradient_backpropagation( System.IntPtr model, double[] inputs, int inputSize, int exampleNumber, double[] output, int nbLayer, bool useClassify );
+	[DllImport("DllForUnity")]
+	public extern static double GetResultForIndex( System.IntPtr model, int nbLayer, int index );
 	#endregion
 	private System.IntPtr _model;
 
@@ -435,15 +445,164 @@ public class Perceptron : MonoBehaviour
 			linear_remove_model(models[i]);
 	}
 	#endregion
-	#region MULTICOUCHE
-	public void StartProcessClassificationMulticouche()
-	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
-	}
-	#endregion
 	void OnDestroy()
 	{
 		linear_remove_model(_model);
 	}
+
+
+
+	#region TEST_MNIST
+	List<byte[][]> images;
+	List<byte> labels;
+
+	public void ReadMNIST()
+	{
+		images = new List<byte[][]>();
+		labels = new List<byte>();
+		byte[][] pixels = new byte[28][];
+		FileStream ifsLabels = new FileStream("Assets/MNIST/t10k-labels.idx1-ubyte", FileMode.Open); // test labels
+		FileStream ifsImages = new FileStream("Assets/MNIST/t10k-images.idx3-ubyte", FileMode.Open); // test images
+		BinaryReader brLabels = new BinaryReader(ifsLabels);
+		BinaryReader brImages = new BinaryReader(ifsImages);
+
+		int magic1 = brImages.ReadInt32(); // discard
+		int numImages = brImages.ReadInt32();
+		int numRows = brImages.ReadInt32();
+		int numCols = brImages.ReadInt32();
+
+		int magic2 = brLabels.ReadInt32();
+		int numLabels = brLabels.ReadInt32();
+
+
+		for( int i = 0 ; i < pixels.Length ; ++i )
+			pixels[i] = new byte[28];
+
+		// each test image
+		for( int di = 0 ; di < 10000 ; ++di )
+		{
+			for( int i = 0 ; i < 28 ; ++i )
+			{
+				for( int j = 0 ; j < 28 ; ++j )
+				{
+					byte b = brImages.ReadByte();
+					b = (byte)( b == 0 ? 0 : 255 );
+					pixels[i][j] = b;
+				}
+			}
+			images.Add(pixels);
+			labels.Add(brLabels.ReadByte());
+		} // each image
+
+		ifsImages.Close();
+		brImages.Close();
+		ifsLabels.Close();
+		brLabels.Close();
+	}
+
+	void GenerateRandomNumberMNIST()
+	{
+		int id = Random.Range(0, 10000);
+		for( int x = 0 ; x < 28 ; ++x )
+		{
+			for( int y = 0 ; y < 28 ; ++y )
+			{
+				if (images[id][x][y] == 0)
+				{
+
+				}
+				//inputs.Add((double)img[x][y]);
+			}
+		}
+	}
+
+	public void StartProcessCLassificationMultiCoucheMNIST()
+	{
+		ReadMNIST();
+		SetIteration(iteration);
+		SetAlpha(alpha);
+		var currmodel = multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count );
+		List<double> inputs = new List<double>();
+		List<double> results = new List<double>();
+		int idx = 0;
+		Debug.Log(images.Count);
+		foreach( var img in images )
+		{
+			for( int x = 0 ; x < 28 ; ++x )
+			{
+				for( int y = 0 ; y < 28 ; ++y )
+				{
+					inputs.Add((double)img[x][y]);
+				}
+				for( var r = 0 ; r < 10 ; ++r )
+					results.Add(labels[idx] == r ? 1 : -1);
+			}
+			idx++;
+		}
+		multilayer_classify_gradient_backpropagation(currmodel, inputs.ToArray(), neuronByLayer[0], images.Count, results.ToArray(), neuronByLayer.Count, true);
+		double[] wanted = new double[28*28];
+		for( var i = 1 ; i < 28 * 28 ; ++i )
+		{
+			wanted[i] = boules.transform.GetChild(i).GetComponent<BallMNISTInfo>().state;
+		}
+		var coef = multilayer_classify_perceptron(currmodel, wanted, neuronByLayer.Count, true);
+		for( var i = 0 ; i < neuronByLayer[neuronByLayer.Count - 1] + 1 ; ++i )
+		{
+			Debug.Log(GetResultForIndex(currmodel, 3, i));
+		}
+	}
+	public void StartProcessClassifyMultiCouche()
+	{
+		SetIteration(iteration);
+		SetAlpha(alpha);
+		balls = new List<Ball>();
+		exBalls = new List<Ball>();
+		for( var i = 0 ; i < boules.transform.childCount ; ++i )
+		{
+			balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
+		}
+		for( var i = 0 ; i < examples.transform.childCount ; ++i )
+		{
+			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
+			{
+				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
+			}
+		}
+		_model = multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count);
+
+		List<double> inputs = new List<double>();
+		List<double> results = new List<double>();
+		foreach( var b in exBalls )
+		{
+			inputs.Add(b.transform.position.x);
+			inputs.Add(b.transform.position.z);
+			results.Add(b.c == EColor.BLUE ? 1 : -1);
+		}
+		multilayer_classify_gradient_backpropagation(_model, inputs.ToArray(), neuronByLayer[0], exBalls.Count, results.ToArray(), neuronByLayer.Count, false);
+		foreach( var b in balls )
+		{
+			double[] wanted = new double[2] { b.transform.position.x, b.transform.position.z };
+			multilayer_classify_perceptron(_model, wanted, neuronByLayer.Count, false);
+			for( var i = 1 ; i < neuronByLayer[neuronByLayer.Count - 1] + 1 ; ++i )
+			{
+				var coef = GetResultForIndex(_model, neuronByLayer.Count, i);
+				if( coef > 0 )
+				{
+					b.renderer.material.color = b.blue.color;
+					b.transform.position = new Vector3(b.transform.position.x, 1, b.transform.position.z);
+				}
+				else
+				{
+					b.renderer.material.color = b.red.color;
+					b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
+				}
+			}
+
+		}
+	}
+
+	#endregion
+
+
+
 }

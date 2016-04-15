@@ -42,6 +42,7 @@ extern "C"
 	DLL_FOR_UNITY_API void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumber, double* output, int nbLayer, bool useClassify);
 	DLL_FOR_UNITY_API void Destroy_MultiLayer_Perceptron(MLP_bis* mlp, int nbLayer);
 
+	DLL_FOR_UNITY_API double GetResultForIndex( MLP_bis* model, int nbLayer, int index );
 	DLL_FOR_UNITY_API double GetAlpha();
 	DLL_FOR_UNITY_API void SetAlpha( double value );
 	DLL_FOR_UNITY_API int GetIteration();

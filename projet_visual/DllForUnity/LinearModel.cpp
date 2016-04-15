@@ -280,7 +280,10 @@ void Destroy_MultiLayer_Perceptron(MLP_bis* mlp, int nbLayer)
 	free(mlp->Sigma);
 	free(mlp);
 }
-
+double GetResultForIndex( MLP_bis* model, int nbLayer, int index )
+{
+	return model->X[nbLayer-1][index];
+}
 double GetAlpha()
 {
 	return alpha;
