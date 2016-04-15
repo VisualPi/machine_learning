@@ -188,7 +188,7 @@ extern "C"
 		return model;
 	}
 
-	void multilayer_classify_perceptron( MLP_bis* model, double* inputs, int nbLayer, bool useClassify )
+	double* multilayer_classify_perceptron( MLP_bis* model, double* inputs, int nbLayer, bool useClassify )
 	{
 		for (int i = 1; i <= model->D[0]; ++i)
 			model->X[0][i] = inputs[i-1];
@@ -207,6 +207,8 @@ extern "C"
 					model->X[l][j] = model->S[l][j];
 			}
 		}
+
+		return model->X[nbLayer - 1];
 	}
 
 	void multilayer_classify_gradient_backpropagation(MLP_bis* model, double* inputs, int inputSize, int exampleNumberCount, double* output, int nbLayer, bool useClassify)
@@ -222,9 +224,9 @@ extern "C"
 				double val = model->X[nbLayer - 1][lastLayerNeuronNumber];
 
 				if (!useClassify)
-					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = val - output[exampleNumber];
+					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = val - output[exampleNumber + (lastLayerNeuronNumber - 1)];
 				else
-					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = ((1.0 - (val * val)) * (val - output[exampleNumber]));
+					model->Sigma[nbLayer - 1][lastLayerNeuronNumber] = ((1.0 - (val * val)) * (val - output[exampleNumber + (lastLayerNeuronNumber-1)]));
 			}
 
 			for (int l = nbLayer - 2; l > 0; --l)
