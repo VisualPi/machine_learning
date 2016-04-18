@@ -1,6 +1,7 @@
 #include "LinearModel.h"
 #include "RBFModel.h"
 #include "PerceptronMulticoucheModel.h"
+#include "MNIST.hpp"
 #include <iostream>
 #include <vector>
 
@@ -91,9 +92,94 @@ void testRBF() {
     RBF_DestroyModel(model, 51);
 }
 
-int main() {
-    testRBF();
-    system("pause");
+void printDataSet(MNIST mnist)
+{
+	for (auto it = mnist.images.cbegin(); it != mnist.images.cend(); ++it)
+	{
+		for (int i = 0; i < (*it)->rows; ++i)
+		{
+			for (int j = 0; j < (*it)->cols; ++j)
+				std::cout << (*it)->pixels[i][j];
+			std::cout << std::endl;
+		}
+		std::cout << (*it)->label << std::endl;
+		std::getchar();
+	}
+}
 
-    return 0;
+void testMNIST()
+{
+	MNIST mnist;
+	mnist.read_mnist("D:\\ESGI\\5A\\machine_learning\\git\\trunk\\unity\\TestDll\\Assets\\MNIST",//path
+		"t10k-images.idx3-ubyte", //nom fichier image
+		"t10k-labels.idx1-ubyte" //nom fichier labels
+	);
+	//printDataSet(mnist);
+	double results[1] = { -1 };
+
+	int pbl[10] = { 784, 600, 500, 400, 300, 200 ,100 , 50, 25, 10 };
+	//int pbl[5] = { 784, 50, 30, 10, 5 };
+	SetIteration(4000);
+	int nbLayer = 10;
+
+	std::vector<double> inputs;
+	inputs.reserve(mnist.images.size() * (mnist.images[0]->rows*mnist.images[0]->cols));
+	for (int i = 0; i < mnist.images.size(); ++i)
+		for (int j = 0; j < mnist.images[i]->rows; ++j)
+			for (int k = 0; k < mnist.images[i]->cols; ++k)
+				inputs.push_back(mnist.images[i]->pixels[j][k]);
+
+	std::vector<double> output;
+	output.reserve(mnist.images.size());
+	for (int i = 0; i < mnist.images.size(); ++i)
+		output.push_back(mnist.images[i]->label);
+
+	MLP *model = MLP_CreateModel(pbl, nbLayer);
+
+	//PrintModelMLP(model, nbLayer);
+	MLP_ClassifyGradientBackpropagation(model, &inputs.front(), 784, 10000, &output.front(), nbLayer, true);
+	std::vector<double> test
+	{
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
+		0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	};
+	double* coucou = MLP_ClassifyPerceptron(model, &test.front(), nbLayer, true);
+
+	//PrintModelMLP(model, nbLayer);
+
+	for (int i = 1; i < 10; ++i)
+		std::cout << i << "=" << coucou[i] << std::endl;
+}
+
+int main() {
+	testRBF();
+	//testMNIST();
+	std::getchar();
+	return 0;
 }
