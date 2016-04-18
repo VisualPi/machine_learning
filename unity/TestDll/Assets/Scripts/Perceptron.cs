@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using Wrapper.Dll;
+using Random = UnityEngine.Random;
 
 public class Perceptron : MonoBehaviour
 {
@@ -504,42 +507,42 @@ public class Perceptron : MonoBehaviour
 		ReadMNIST();
         WrapperDllMachineLearning.SetIteration(iteration);
         WrapperDllMachineLearning.SetAlpha(alpha);
-		var currmodel = WrapperDllMachineLearning.multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count );
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
-		int idx = 0;
+		IntPtr[] currmodel = WrapperDllMachineLearning.MLP.CreateModel(neuronByLayer.ToArray(), neuronByLayer.Count );
+		var inputs = new List<double>();
+		var results = new List<double>();
+		var idx = 0;
 		Debug.Log(images.Count);
-		foreach( var img in images )
+		foreach( byte[][] img in images )
 		{
-			for( int x = 0 ; x < 28 ; ++x )
+			for( var x = 0 ; x < 28 ; ++x )
 			{
-				for( int y = 0 ; y < 28 ; ++y )
+				for( var y = 0 ; y < 28 ; ++y )
 				{
-					inputs.Add((double)img[x][y]);
+					inputs.Add(img[x][y]);
 				}
 				for( var r = 0 ; r < 10 ; ++r )
 					results.Add(labels[idx] == r ? 1 : -1);
 			}
 			idx++;
 		}
-        WrapperDllMachineLearning.multilayer_classify_gradient_backpropagation(currmodel, inputs.ToArray(), neuronByLayer[0], images.Count, results.ToArray(), neuronByLayer.Count, true);
-		double[] wanted = new double[28*28];
+        WrapperDllMachineLearning.MLP.ClassifyGradientBackpropagation(currmodel, inputs.ToArray(), neuronByLayer[0], images.Count, results.ToArray(), neuronByLayer.Count, true);
+		var wanted = new double[28*28];
 		for( var i = 1 ; i < 28 * 28 ; ++i )
 		{
 			wanted[i] = boules.transform.GetChild(i).GetComponent<BallMNISTInfo>().state;
 		}
-		var coef = WrapperDllMachineLearning.multilayer_classify_perceptron(currmodel, wanted, neuronByLayer.Count, true);
+		double[] coef = WrapperDllMachineLearning.MLP.ClassifyPerceptron(currmodel, wanted, neuronByLayer.Count, true);
 		for( var i = 0 ; i < neuronByLayer[neuronByLayer.Count - 1] + 1 ; ++i )
 		{
-			Debug.Log(WrapperDllMachineLearning.GetResultForIndex(currmodel, 3, i));
+			Debug.Log(WrapperDllMachineLearning.MLP.GetResultForIndex(currmodel, 3, i));
         }
         // TODO DESTROY MODEL
     }
 
     public void StartProcessClassifyMultiCouche()
     {
-        WrapperDllMachineLearning.SetIteration(iteration);
-        WrapperDllMachineLearning.SetAlpha(alpha);
+        WrapperDllMachineLearning.MLP.Iteration = iteration;
+        WrapperDllMachineLearning.MLP.Alpha = alpha;
         balls = new List<Ball>();
         exBalls = new List<Ball>();
         for (var i = 0; i < boules.transform.childCount; ++i)
@@ -553,7 +556,7 @@ public class Perceptron : MonoBehaviour
                 exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
             }
         }
-        var model = WrapperDllMachineLearning.multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count);
+        var model = WrapperDllMachineLearning.MLP.CreateModel(neuronByLayer.ToArray(), neuronByLayer.Count);
 
         var inputs = new List<double>();
         var results = new List<double>();
@@ -563,15 +566,15 @@ public class Perceptron : MonoBehaviour
             inputs.Add(b.transform.position.z);
             results.Add(b.c == EColor.BLUE ? 1 : -1);
         }
-        WrapperDllMachineLearning.multilayer_classify_gradient_backpropagation(_model, inputs.ToArray(),
+        WrapperDllMachineLearning.MLP.ClassifyGradientBackpropagation(model, inputs.ToArray(),
             neuronByLayer[0], exBalls.Count, results.ToArray(), neuronByLayer.Count, false);
         foreach (var b in balls)
         {
             var wanted = new double[2] {b.transform.position.x, b.transform.position.z};
-            WrapperDllMachineLearning.multilayer_classify_perceptron(_model, wanted, neuronByLayer.Count, false);
+            WrapperDllMachineLearning.MLP.ClassifyPerceptron(model, wanted, neuronByLayer.Count, false);
             for (var i = 1; i < neuronByLayer[neuronByLayer.Count - 1] + 1; ++i)
             {
-                var coef = WrapperDllMachineLearning.GetResultForIndex(_model, neuronByLayer.Count, i);
+                var coef = WrapperDllMachineLearning.MLP.GetResultForIndex(model, neuronByLayer.Count, i);
                 if (coef > 0)
                 {
                     b.renderer.material.color = b.blue.color;

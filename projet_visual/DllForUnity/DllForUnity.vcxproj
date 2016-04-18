@@ -149,10 +149,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="LinearModel.h" />
+    <ClInclude Include="PerceptronMulticoucheModel.h" />
     <ClInclude Include="RBFModel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LinearModel.cpp" />
+    <ClCompile Include="PerceptronMulticoucheModel.cpp" />
     <ClCompile Include="RBFModel.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
