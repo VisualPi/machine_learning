@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.IO;
 
 public class Perceptron : MonoBehaviour
@@ -13,37 +12,7 @@ public class Perceptron : MonoBehaviour
 	public Material defaultColor;
 	[SerializeField]
 	public List<int> neuronByLayer;
-
-	#region DLL_DEFINITIONS
-	[DllImport("DllForUnity")]
-	public extern static System.IntPtr linear_create_model( int input_model );
-
-	[DllImport("DllForUnity")]
-	public extern static void linear_remove_model( System.IntPtr model );
-	[DllImport("DllForUnity")]
-	public extern static int perceptron_classify( System.IntPtr model, double[] input, int inputSize );
-	[DllImport("DllForUnity")]
-	public extern static void perceptron_fit( System.IntPtr model, double[] inputs, int modelSize, int inputsSize, double[] results );
-	[DllImport("DllForUnity")]
-	public extern static void classification_hebb( System.IntPtr model, double[] input, int inputSize, double result );
-	[DllImport("DllForUnity")]
-	public extern static void regression_fit( System.IntPtr model, double[] inputs, int modelSize, int inputsSize, double[] results );
-	[DllImport("DllForUnity")]
-	public extern static double perceptron_predict( System.IntPtr model, double[] input, int inputSize );
-	[DllImport("DllForUnity")]
-	public extern static void SetAlpha( double value );
-	[DllImport("DllForUnity")]
-	public extern static void SetIteration( int value );
-
-	[DllImport("DllForUnity")]
-	public extern static System.IntPtr multilayer_create_model_bis( int[] perceptronsByLayer, int nbLayer );
-	[DllImport("DllForUnity")]
-	public extern static System.IntPtr multilayer_classify_perceptron( System.IntPtr model, double[] inputs, int nbLayer, bool useClassify );
-	[DllImport("DllForUnity")]
-	public extern static void multilayer_classify_gradient_backpropagation( System.IntPtr model, double[] inputs, int inputSize, int exampleNumber, double[] output, int nbLayer, bool useClassify );
-	[DllImport("DllForUnity")]
-	public extern static double GetResultForIndex( System.IntPtr model, int nbLayer, int index );
-	#endregion
+    
 	private System.IntPtr _model;
 
 	public int iteration = 10000;
@@ -51,14 +20,15 @@ public class Perceptron : MonoBehaviour
 
 	void Start()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 	}
+
 	#region SIMPLE
 	public void StartProcessClassify()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -72,21 +42,21 @@ public class Perceptron : MonoBehaviour
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 			}
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x);
 			inputs.Add(b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { b.transform.position.x, b.transform.position.z };
-			if( perceptron_classify(_model, wanted, 2) == -1 )
+            if (WrapperDllMachineLearning.perceptron_classify(_model, wanted, 2) == -1)
 			{
 				b.renderer.material.color = b.blue.color;
 				b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
@@ -96,12 +66,14 @@ public class Perceptron : MonoBehaviour
 				b.renderer.material.color = b.red.color;
 				b.transform.position = new Vector3(b.transform.position.x, +1, b.transform.position.z);
 			}
-		}
-	}
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+
 	public void StartProcessRegression()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -111,31 +83,33 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x);
 			inputs.Add(b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { b.transform.position.x, b.transform.position.z };
-			var coef = (float)perceptron_predict(_model, wanted, 2);
+            var coef = (float)WrapperDllMachineLearning.perceptron_predict(_model, wanted, 2);
 			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
-			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
-		}
-	}
-	#endregion
+            //b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+	#endregion SIMPLE
+
 	#region SQUARE
 	public void StartProcessClassifySquare()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -145,21 +119,21 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x * b.transform.position.x);
 			inputs.Add(b.transform.position.z * b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { b.transform.position.x * b.transform.position.x, b.transform.position.z * b.transform.position.z };
-			if( perceptron_classify(_model, wanted, 2) == -1 )
+            if (WrapperDllMachineLearning.perceptron_classify(_model, wanted, 2) == -1)
 			{
 				b.renderer.material.color = b.blue.color;
 				b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
@@ -169,12 +143,14 @@ public class Perceptron : MonoBehaviour
 				b.renderer.material.color = b.red.color;
 				b.transform.position = new Vector3(b.transform.position.x, +1, b.transform.position.z);
 			}
-		}
-	}
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+
 	public void StartProcessRegressionSquare()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -184,31 +160,33 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x * b.transform.position.x);
 			inputs.Add(b.transform.position.z * b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { b.transform.position.x * b.transform.position.x, b.transform.position.z * b.transform.position.z };
-			var coef = (float)perceptron_predict(_model, wanted, 2);
+            var coef = (float)WrapperDllMachineLearning.perceptron_predict(_model, wanted, 2);
 			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
-			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
-		}
-	}
-	#endregion
+            //b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+	#endregion SQUARE
+
 	#region CROSS
 	public void StartProcessClassifyCross()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -222,21 +200,21 @@ public class Perceptron : MonoBehaviour
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 			}
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z));
 			inputs.Add(Mathf.Abs(b.transform.position.x * b.transform.position.z));
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.perceptron_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z), Mathf.Abs(b.transform.position.x * b.transform.position.z) };
-			if( perceptron_classify(_model, wanted, 2) == -1 )
+            if (WrapperDllMachineLearning.perceptron_classify(_model, wanted, 2) == -1)
 			{
 				b.renderer.material.color = b.blue.color;
 				b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
@@ -246,12 +224,14 @@ public class Perceptron : MonoBehaviour
 				b.renderer.material.color = b.red.color;
 				b.transform.position = new Vector3(b.transform.position.x, +1, b.transform.position.z);
 			}
-		}
-	}
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+
 	public void StartProcessRegressionCross()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -261,31 +241,33 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z));
 			inputs.Add(Mathf.Abs(b.transform.position.x * b.transform.position.z));
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.regression_fit(_model, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[2] { Mathf.Abs(b.transform.position.x) + Mathf.Abs(b.transform.position.z), Mathf.Abs(b.transform.position.x * b.transform.position.z) };
-			var coef = (float)perceptron_predict(_model, wanted, 2);
+            var coef = (float)WrapperDllMachineLearning.perceptron_predict(_model, wanted, 2);
 			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
-			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
-		}
-	}
-	#endregion
+            //b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+	#endregion CROSS
+
 	#region XOR
 	public void StartProcessClassifyXOR()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -295,20 +277,20 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(1);
+        var model = WrapperDllMachineLearning.linear_create_model(1);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x * b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		perceptron_fit(_model, inputs.ToArray(), 1, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.perceptron_fit(_model, inputs.ToArray(), 1, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[1] { b.transform.position.x * b.transform.position.z };
-			if( perceptron_classify(_model, wanted, 1) == -1 )
+            if (WrapperDllMachineLearning.perceptron_classify(_model, wanted, 1) == -1)
 			{
 				b.renderer.material.color = b.blue.color;
 				b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
@@ -318,12 +300,14 @@ public class Perceptron : MonoBehaviour
 				b.renderer.material.color = b.red.color;
 				b.transform.position = new Vector3(b.transform.position.x, +1, b.transform.position.z);
 			}
-		}
-	}
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+
 	public void StartProcessRegressionXOR()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		for( var i = 0 ; i < boules.transform.childCount ; ++i )
@@ -333,30 +317,32 @@ public class Perceptron : MonoBehaviour
 			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
 				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
 		}
-		_model = linear_create_model(2);
+        var model = WrapperDllMachineLearning.linear_create_model(2);
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
+		var inputs = new List<double>();
+		var results = new List<double>();
 		foreach( var b in exBalls )
 		{
 			inputs.Add(b.transform.position.x * b.transform.position.z);
 			results.Add(b.c == EColor.BLUE ? -1 : 1);
 		}
-		regression_fit(_model, inputs.ToArray(), 1, inputs.Count, results.ToArray());
+        WrapperDllMachineLearning.regression_fit(_model, inputs.ToArray(), 1, inputs.Count, results.ToArray());
 		foreach( var b in balls )
 		{
 			double[] wanted = new double[1] { b.transform.position.x * b.transform.position.z };
-			var coef = (float)perceptron_predict(_model, wanted, 1);
+            var coef = (float)WrapperDllMachineLearning.perceptron_predict(_model, wanted, 1);
 			b.renderer.material.color = new Color(Mathf.Max(0, coef * defaultColor.color.r), 0, Mathf.Max(0, defaultColor.color.b * -coef));
-			//b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
-		}
-	}
-	#endregion
+            //b.transform.position = new Vector3(b.transform.position.x, (float)perceptron_predict(_model, wanted, 2), b.transform.position.z);
+        }
+        WrapperDllMachineLearning.linear_remove_model(model);
+    }
+	#endregion XOR
+
 	#region MULTICLASSE
 	public void StartProcessCLassificationMulticlasse()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		List<EColor> types = new List<EColor>();
@@ -371,7 +357,7 @@ public class Perceptron : MonoBehaviour
 		List<System.IntPtr> models = new List<System.IntPtr>();
 		for( var i = 0 ; i < types.Count ; ++i ) //Pour toutes les classes
 		{
-			var currmodel = linear_create_model(2);
+            var currmodel = WrapperDllMachineLearning.linear_create_model(2);
 			List<double> inputs = new List<double>();
 			List<double> results = new List<double>();
 			foreach( var b in exBalls )
@@ -380,7 +366,7 @@ public class Perceptron : MonoBehaviour
 				inputs.Add(b.transform.position.z);
 				results.Add(b.c == types[i] ? -1 : 1);//Si la couleur de la boule est la couleur actuelle tu met -1, sinon 1
 			}
-			perceptron_fit(currmodel, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+            WrapperDllMachineLearning.perceptron_fit(currmodel, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 			models.Add(currmodel);
 		}
 		foreach( var b in balls )
@@ -388,19 +374,22 @@ public class Perceptron : MonoBehaviour
 			double[] wanted = new double[2] { b.transform.position.x, b.transform.position.z };
 			for( var i = 0 ; i < models.Count ; ++i )
 			{
-				var coef = perceptron_classify(models[i], wanted, wanted.Length);
+                var coef = WrapperDllMachineLearning.perceptron_classify(models[i], wanted, wanted.Length);
 				if( coef == -1 )
 				{
 					b.renderer.material = b.GetColor(types[i]);
 					b.transform.position = new Vector3(b.transform.position.x, b.GetPosByColor(types[i]), b.transform.position.z);
 				}
 			}
-		}
-	}
+        }
+        for (var i = 0; i < models.Count; ++i)
+            WrapperDllMachineLearning.linear_remove_model(models[i]);
+    }
+
 	public void StartProcessRegressionMulticlasse()
 	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
 		balls = new List<Ball>();
 		exBalls = new List<Ball>();
 		List<EColor> types = new List<EColor>();
@@ -415,7 +404,7 @@ public class Perceptron : MonoBehaviour
 		List<System.IntPtr> models = new List<System.IntPtr>();
 		for( var i = 0 ; i < types.Count ; ++i ) //Pour toutes les classes
 		{
-			var currmodel = linear_create_model(2);
+            var currmodel = WrapperDllMachineLearning.linear_create_model(2);
 			List<double> inputs = new List<double>();
 			List<double> results = new List<double>();
 			foreach( var b in exBalls )
@@ -424,7 +413,7 @@ public class Perceptron : MonoBehaviour
 				inputs.Add(b.transform.position.z);
 				results.Add(b.c == types[i] ? -1 : 1);//Si la couleur de la boule est la couleur actuelle tu met -1, sinon 1
 			}
-			regression_fit(currmodel, inputs.ToArray(), 2, inputs.Count, results.ToArray());
+            WrapperDllMachineLearning.regression_fit(currmodel, inputs.ToArray(), 2, inputs.Count, results.ToArray());
 			models.Add(currmodel);
 		}
 		foreach( var b in balls )
@@ -434,7 +423,7 @@ public class Perceptron : MonoBehaviour
 			Color c = new Color();
 			for( var i = 0 ; i < models.Count ; ++i )
 			{
-				coef = perceptron_predict(models[i], wanted, wanted.Length);
+                coef = WrapperDllMachineLearning.perceptron_predict(models[i], wanted, wanted.Length);
 				c += ( ( 1f - (float)coef ) / 2f ) * b.GetColor(types[i]).color;
 			}
 			//coef /= models.Count;
@@ -442,18 +431,12 @@ public class Perceptron : MonoBehaviour
 			//b.transform.position = new Vector3(b.transform.position.x, (float)coef, b.transform.position.z);
 		}
 		for( var i = 0 ; i < models.Count ; ++i )
-			linear_remove_model(models[i]);
+            WrapperDllMachineLearning.linear_remove_model(models[i]);
 	}
-	#endregion
-	void OnDestroy()
-	{
-		linear_remove_model(_model);
-	}
+    #endregion MULTICLASSE
 
-
-
-	#region TEST_MNIST
-	List<byte[][]> images;
+    #region TEST_MNIST
+    List<byte[][]> images;
 	List<byte> labels;
 
 	public void ReadMNIST()
@@ -519,9 +502,9 @@ public class Perceptron : MonoBehaviour
 	public void StartProcessCLassificationMultiCoucheMNIST()
 	{
 		ReadMNIST();
-		SetIteration(iteration);
-		SetAlpha(alpha);
-		var currmodel = multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count );
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
+		var currmodel = WrapperDllMachineLearning.multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count );
 		List<double> inputs = new List<double>();
 		List<double> results = new List<double>();
 		int idx = 0;
@@ -539,68 +522,71 @@ public class Perceptron : MonoBehaviour
 			}
 			idx++;
 		}
-		multilayer_classify_gradient_backpropagation(currmodel, inputs.ToArray(), neuronByLayer[0], images.Count, results.ToArray(), neuronByLayer.Count, true);
+        WrapperDllMachineLearning.multilayer_classify_gradient_backpropagation(currmodel, inputs.ToArray(), neuronByLayer[0], images.Count, results.ToArray(), neuronByLayer.Count, true);
 		double[] wanted = new double[28*28];
 		for( var i = 1 ; i < 28 * 28 ; ++i )
 		{
 			wanted[i] = boules.transform.GetChild(i).GetComponent<BallMNISTInfo>().state;
 		}
-		var coef = multilayer_classify_perceptron(currmodel, wanted, neuronByLayer.Count, true);
+		var coef = WrapperDllMachineLearning.multilayer_classify_perceptron(currmodel, wanted, neuronByLayer.Count, true);
 		for( var i = 0 ; i < neuronByLayer[neuronByLayer.Count - 1] + 1 ; ++i )
 		{
-			Debug.Log(GetResultForIndex(currmodel, 3, i));
-		}
-	}
-	public void StartProcessClassifyMultiCouche()
-	{
-		SetIteration(iteration);
-		SetAlpha(alpha);
-		balls = new List<Ball>();
-		exBalls = new List<Ball>();
-		for( var i = 0 ; i < boules.transform.childCount ; ++i )
-		{
-			balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
-		}
-		for( var i = 0 ; i < examples.transform.childCount ; ++i )
-		{
-			for( var j = 0 ; j < examples.transform.GetChild(i).childCount ; ++j )
-			{
-				exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
-			}
-		}
-		_model = multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count);
+			Debug.Log(WrapperDllMachineLearning.GetResultForIndex(currmodel, 3, i));
+        }
+        // TODO DESTROY MODEL
+    }
 
-		List<double> inputs = new List<double>();
-		List<double> results = new List<double>();
-		foreach( var b in exBalls )
-		{
-			inputs.Add(b.transform.position.x);
-			inputs.Add(b.transform.position.z);
-			results.Add(b.c == EColor.BLUE ? 1 : -1);
-		}
-		multilayer_classify_gradient_backpropagation(_model, inputs.ToArray(), neuronByLayer[0], exBalls.Count, results.ToArray(), neuronByLayer.Count, false);
-		foreach( var b in balls )
-		{
-			double[] wanted = new double[2] { b.transform.position.x, b.transform.position.z };
-			multilayer_classify_perceptron(_model, wanted, neuronByLayer.Count, false);
-			for( var i = 1 ; i < neuronByLayer[neuronByLayer.Count - 1] + 1 ; ++i )
-			{
-				var coef = GetResultForIndex(_model, neuronByLayer.Count, i);
-				if( coef > 0 )
-				{
-					b.renderer.material.color = b.blue.color;
-					b.transform.position = new Vector3(b.transform.position.x, 1, b.transform.position.z);
-				}
-				else
-				{
-					b.renderer.material.color = b.red.color;
-					b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
-				}
-			}
+    public void StartProcessClassifyMultiCouche()
+    {
+        WrapperDllMachineLearning.SetIteration(iteration);
+        WrapperDllMachineLearning.SetAlpha(alpha);
+        balls = new List<Ball>();
+        exBalls = new List<Ball>();
+        for (var i = 0; i < boules.transform.childCount; ++i)
+        {
+            balls.Add(boules.transform.GetChild(i).GetComponent<Ball>());
+        }
+        for (var i = 0; i < examples.transform.childCount; ++i)
+        {
+            for (var j = 0; j < examples.transform.GetChild(i).childCount; ++j)
+            {
+                exBalls.Add(examples.transform.GetChild(i).GetChild(j).GetComponent<Ball>());
+            }
+        }
+        var model = WrapperDllMachineLearning.multilayer_create_model_bis(neuronByLayer.ToArray(), neuronByLayer.Count);
 
-		}
-	}
+        var inputs = new List<double>();
+        var results = new List<double>();
+        foreach (var b in exBalls)
+        {
+            inputs.Add(b.transform.position.x);
+            inputs.Add(b.transform.position.z);
+            results.Add(b.c == EColor.BLUE ? 1 : -1);
+        }
+        WrapperDllMachineLearning.multilayer_classify_gradient_backpropagation(_model, inputs.ToArray(),
+            neuronByLayer[0], exBalls.Count, results.ToArray(), neuronByLayer.Count, false);
+        foreach (var b in balls)
+        {
+            var wanted = new double[2] {b.transform.position.x, b.transform.position.z};
+            WrapperDllMachineLearning.multilayer_classify_perceptron(_model, wanted, neuronByLayer.Count, false);
+            for (var i = 1; i < neuronByLayer[neuronByLayer.Count - 1] + 1; ++i)
+            {
+                var coef = WrapperDllMachineLearning.GetResultForIndex(_model, neuronByLayer.Count, i);
+                if (coef > 0)
+                {
+                    b.renderer.material.color = b.blue.color;
+                    b.transform.position = new Vector3(b.transform.position.x, 1, b.transform.position.z);
+                }
+                else
+                {
+                    b.renderer.material.color = b.red.color;
+                    b.transform.position = new Vector3(b.transform.position.x, -1, b.transform.position.z);
+                }
+            }
 
+        }
+        // TODO DESTROY MODEL
+    }
 	#endregion
 
 
