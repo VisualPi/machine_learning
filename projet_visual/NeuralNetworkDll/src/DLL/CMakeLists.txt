@@ -1,4 +1,4 @@
-project (DLL CXX)
+project (NeuralNetwork CXX)
 
 set(PROJECTS ${PROJECTS} ${PROJECT_NAME} PARENT_SCOPE)
 
