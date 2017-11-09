@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/../include/LinearModel.h
+
+../src/../include/MNIST.hpp
+iostream
+-
+string
+-
+fstream
+-
+stdio.h
+-
+vector
+-
+
+../src/../include/PerceptronMulticoucheModel.h
+
+../src/../include/RBFModel.h
+
+/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/src/test/main.cpp
+LinearModel.h
+/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/src/test/LinearModel.h
+RBFModel.h
+/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/src/test/RBFModel.h
+PerceptronMulticoucheModel.h
+/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/src/test/PerceptronMulticoucheModel.h
+MNIST.hpp
+/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/src/test/MNIST.hpp
+iostream
+-
+vector
+-
+
