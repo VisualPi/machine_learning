@@ -1,1 +1,0 @@
-/opt/ISTAR/TPL/COS7U1/x86_64/neoCore/bin/g++  -fPIC -std=c++11 -g   -shared -Wl,-soname,libNeuralNetwork.so -o ../../bin/libNeuralNetwork.so CMakeFiles/NeuralNetwork.dir/LinearModel.cpp.o CMakeFiles/NeuralNetwork.dir/PerceptronMulticoucheModel.cpp.o CMakeFiles/NeuralNetwork.dir/RBFModel.cpp.o 

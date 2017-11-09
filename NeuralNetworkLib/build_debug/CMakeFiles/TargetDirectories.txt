@@ -1,2 +1,0 @@
-/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/build_debug/src/lib/CMakeFiles/NeuralNetwork.dir
-/0/jloquet/pers/machine_learning/projet_visual/NeuralNetworkDll/build_debug/src/test/CMakeFiles/testNeuralNetwork.dir
