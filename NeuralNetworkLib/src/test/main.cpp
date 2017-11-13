@@ -4,8 +4,9 @@
 #include "MNIST.hpp"
 #include <iostream>
 #include <vector>
+#include <locale>
 
-void PrintModelMLP(MLP* model,int nbLayer)
+void PrintModelMLP(const MLP* model,const int nbLayer)
 {
 	for (int layer = 1; layer < nbLayer; ++layer)
 	{
@@ -23,7 +24,7 @@ void PrintModelMLP(MLP* model,int nbLayer)
 	std::cout << std::endl;
 }
 
-void PrintModelRBF(RBF* model, int nbExample, int nbParameter) {
+void PrintModelRBF(const RBF* model, const int nbExample, const int nbParameter) {
     for (int i = 0; i < nbExample; ++i) {
         std::cout << "model[" << i << "].W = " << model[i].W << ", model[" << i << "].X = {";
         for (int j = 0; j < nbParameter; ++j) { std::cout << model[i].X[j] << ","; }
@@ -43,7 +44,7 @@ void testMLP() {
 	double results[1] = { -1 };
 
 	int pbl[5] = { 784, 10, 10  };
-	int nbLayer = 3;
+	const int nbLayer = 3;
 
 	std::vector<double> inputs;
 	inputs.reserve(784);
@@ -110,7 +111,7 @@ void printDataSet(MNIST mnist)
 void testMNIST()
 {
 	MNIST mnist;//TODO: ne pas mettre en dur !
-	mnist.read_mnist("D:\\ESGI\\5A\\machine_learning\\git\\trunk\\unity\\TestDll\\Assets\\MNIST",//path
+	mnist.read_mnist("D:\\Temp\\mnist",//path
 		"t10k-images.idx3-ubyte", //nom fichier image
 		"t10k-labels.idx1-ubyte" //nom fichier labels
 	);
@@ -119,7 +120,7 @@ void testMNIST()
 
 	int pbl[10] = { 784, 600, 500, 400, 300, 200 ,100 , 50, 25, 10 };
 	//int pbl[5] = { 784, 50, 30, 10, 5 };
-	SetIteration(4000);
+	SetIteration(2000);
 	int nbLayer = 10;
 
 	std::vector<double> inputs;
@@ -189,11 +190,11 @@ int Help()
 int main(int argc, char **argv) {
 	if (argc < 2)
 		return Help();
-	if ("test_MLP" == std::string(argv[1]))
+	if ("test_mlp" == std::string(argv[1]))
 		testMLP();
-	else if ("test_RBF" == std::string(argv[1]))
+	else if ("test_rbf" == std::string(argv[1]))
 		testRBF();
-	else if ("test_MNIST" == std::string(argv[1]))
+	else if ("test_mnist" == std::string(argv[1]))
 		testMNIST();
 	else
 	{
